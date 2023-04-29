@@ -1,0 +1,2 @@
+FROM qts8n/cuda-python
+ENTRYPOINT ["tail", "-f", "/dev/null"]
