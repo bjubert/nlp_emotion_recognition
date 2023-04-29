@@ -1,4 +1,4 @@
-version: 3.9
+version: '3'
 services:
   dev:
     build: 
@@ -6,4 +6,11 @@ services:
       dockerfile: Dockerfile.nlp_app 
     volumes:
       - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     

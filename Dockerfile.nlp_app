@@ -1,2 +1,12 @@
-FROM qts8n/cuda-python
+FROM nvidia/cuda:11.4.1-cudnn8-runtime-ubuntu20.04
+
+WORKDIR /app
+
+# install requirements
+COPY requirements_nlp_app.txt /tmp/
+
+RUN apt-get update\
+    && apt-get install -y python3-pip\
+    && pip install --no-cache-dir install -r /tmp/requirements_nlp_app.txt
+
 ENTRYPOINT ["tail", "-f", "/dev/null"]
