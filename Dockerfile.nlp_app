@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements_nlp_app.txt /tmp/
 
 RUN apt-get update\
-    && apt-get install -y python3-pip\
+    && apt-get install -y python3-pip python3\
     && pip install --no-cache-dir install -r /tmp/requirements_nlp_app.txt
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
