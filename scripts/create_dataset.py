@@ -23,6 +23,7 @@ def import_dair_ai():
 
     #Renommer la colonne emotion en label
     ds = ds.rename_column('emotion', 'label')
+    print(set(ds['label']))
     return ds
 
 def import_kaggle_emotion():
@@ -32,6 +33,7 @@ def import_kaggle_emotion():
         #create dataset huggingface
         train = pd.DataFrame(train, columns=['text', 'label'])
         ds = Dataset.from_pandas(train)
+        print(set(ds['label']))
         return ds
 
 def import_kaggle_tasks():
@@ -41,6 +43,14 @@ def import_kaggle_tasks():
         #create dataset huggingface
         train = pd.DataFrame(train, columns=['text', 'label'])
         ds = Dataset.from_pandas(train)
+        # 0 : sadness, 1 : joy, 2 : love, 3 : anger, 4 : fear 
+        #affect values to emotions and remove line if key is not in emotions
+        emotions = {'0': 'sadness', '1': 'joy', '2': 'love', '3': 'anger', '4': 'fear'}
+        #Filter the dataset to keep only the emotions in the emotions dictionary
+        ds = ds.filter(lambda example: example['label'] in emotions.keys())
+        ds = ds.map(lambda example: {'label': emotions[example['label']]})
+        print(ds)
+        print(set(ds['label']))
         return ds
     
 
@@ -50,6 +60,7 @@ def import_sentiment_analysis_in_text():
     df = df.rename(columns={'sentiment': 'label'})
     df = df.rename(columns={'content': 'text'})
     ds = Dataset.from_pandas(df)
+    print(set(ds['label']))
     return ds
 
 def import_daily_dialog():
@@ -76,6 +87,7 @@ def import_daily_dialog():
     #Filter the dataset to keep only the emotions in the emotions dictionary
     ds = ds.filter(lambda example: example['label'] in emotions.keys())
     ds = ds.map(lambda example: {'label': emotions[example['label']]})
+    print(set(ds['label']))
     return ds
 
 def create_dataset():
@@ -84,6 +96,12 @@ def create_dataset():
         ds = up.clean_text(ds)
         ds_list.append(ds)
     datasets = concatenate_datasets(ds_list)
+    #replace happiness by joy
+    datasets = datasets.map(lambda example: {'label': 'joy' if example['label'] == 'happiness' else example['label']})
+    # replace worry by fear
+    datasets = datasets.map(lambda example: {'label': 'fear' if example['label'] == 'worry' else example['label']})
+    # remove empty labels
+    datasets = datasets.filter(lambda example: example['label'] != 'empty')
     return datasets
 
 def save_dataset(ds):
