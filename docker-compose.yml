@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile.nlp_app 
     volumes:
       - .:/app
+    ports:
+      - "8888:8888"
     deploy:
       resources:
         reservations:
