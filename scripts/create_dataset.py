@@ -1,7 +1,9 @@
 from datasets import concatenate_datasets, load_dataset, Dataset, ClassLabel
-import os
 import pandas as pd
+import re
 import sys
+sys.path.append('/app')
+import src.test as test
 
 sys.path.append('/app')
 from src import utils_preprocess as up
