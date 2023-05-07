@@ -3,9 +3,6 @@ import pandas as pd
 import re
 import sys
 sys.path.append('/app')
-import src.test as test
-
-sys.path.append('/app')
 from src import utils_preprocess as up
 
 def import_dair_ai():
@@ -22,9 +19,10 @@ def import_dair_ai():
         del example['label']
         return example
     ds = ds.map(map_emotions)
+    #ds.map(lambda example: {'label': emotions[example['label']]})
+
     #Renommer la colonne emotion en label
     ds = ds.rename_column('emotion', 'label')
-    #ds.map(lambda example: {'label': emotions[example['label']]})
     return ds
 
 def import_kaggle_emotion():
