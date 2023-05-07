@@ -1,12 +1,10 @@
 from datasets import concatenate_datasets, load_dataset, Dataset, ClassLabel
 import os
 import pandas as pd
-import re
+import sys
 
-def clean_text(dataset):
-    dataset = dataset.map(lambda example: {'text': re.sub('[@#]\S+', '', example['text'])})
-    dataset = dataset.map(lambda example: {'text': re.sub('\s+', '', example['text'])})
-    return dataset
+sys.path.append('/app')
+from src import utils_preprocess as up
 
 def import_dair_ai():
     dataset = load_dataset('dair-ai/emotion', split=None)
@@ -16,7 +14,7 @@ def import_dair_ai():
     emotions = {0: 'sadness', 1: 'joy', 2: 'love', 3: 'anger', 4: 'fear', 5: 'surprise'}
     #Filter the dataset to keep only the emotions in the emotions dictionary
     ds = ds.filter(lambda example: example['label'] in emotions.keys())
-    #Map the values of the emotion to the corresponding emotion
+    #Map the values of the emotion to the corresponding emotion. Workaround because map function doesn't work.
     def map_emotions(example):
         example['emotion'] = emotions[example['label']]
         del example['label']
@@ -36,6 +34,15 @@ def import_kaggle_emotion():
         ds = Dataset.from_pandas(train)
         return ds
 
+def import_kaggle_tasks():
+    with open('data/raw_datasets/kaggle_tasks/training.csv', 'r') as f:
+        train = f.readlines()
+        train = [line.strip().split(',') for line in train]
+        #create dataset huggingface
+        train = pd.DataFrame(train, columns=['text', 'label'])
+        ds = Dataset.from_pandas(train)
+        return ds
+    
 
 def import_sentiment_analysis_in_text():   
     df = pd.read_csv('https://query.data.world/s/nzgta6r4vf4sl7nmiwudkglbberul4?dws=00000')
@@ -72,11 +79,12 @@ def import_daily_dialog():
     return ds
 
 def create_dataset():
-    dsk = [import_dair_ai(), import_kaggle_emotion(), import_sentiment_analysis_in_text(), import_daily_dialog()]
-    for ds in dsk:
-        ds = clean_text(ds)
-    dsk = concatenate_datasets(dsk)
-    return dsk
+    ds_list = []
+    for ds in [import_dair_ai(), import_kaggle_emotion(), import_kaggle_tasks(), import_sentiment_analysis_in_text(), import_daily_dialog()]:
+        ds = up.clean_text(ds)
+        ds_list.append(ds)
+    datasets = concatenate_datasets(ds_list)
+    return datasets
 
 def save_dataset(ds):
     ds.save_to_disk('data/dataset')
