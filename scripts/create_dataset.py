@@ -1,7 +1,9 @@
 from datasets import concatenate_datasets, load_dataset, Dataset, ClassLabel
-import os
 import pandas as pd
 import re
+import sys
+sys.path.append('/app')
+import src.test as test
 
 def clean_text(dataset):
     dataset = dataset.map(lambda example: {'text': re.sub('[@#]\S+', '', example['text'])})
@@ -45,6 +47,15 @@ def import_sentiment_analysis_in_text():
     ds = Dataset.from_pandas(df)
     return ds
 
+def import_kaggle_tasks():
+    with open('data/raw_datasets/kaggle_tasks/training.csv', 'r') as f:
+        train = f.readlines()
+        train = [line.strip().split(',') for line in train]
+        #create dataset huggingface
+        train = pd.DataFrame(train, columns=['text', 'label'])
+        ds = Dataset.from_pandas(train)
+        return ds
+
 def import_daily_dialog():
     #import dataset from huggingface
     dataset = load_dataset('daily_dialog', split=None)  
@@ -72,7 +83,7 @@ def import_daily_dialog():
     return ds
 
 def create_dataset():
-    dsk = [import_dair_ai(), import_kaggle_emotion(), import_sentiment_analysis_in_text(), import_daily_dialog()]
+    dsk = [import_dair_ai(), import_kaggle_emotion(), import_sentiment_analysis_in_text(), import_daily_dialog(), import_kaggle_tasks()]
     for ds in dsk:
         ds = clean_text(ds)
     dsk = concatenate_datasets(dsk)
